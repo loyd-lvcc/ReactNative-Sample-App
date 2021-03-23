@@ -3,8 +3,9 @@ import {
     View,
     Text,
     TextInput,
-    TouchableOpacity
+    TouchableOpacity,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
  
 export default class Login extends React.Component {
     state = {
@@ -13,7 +14,7 @@ export default class Login extends React.Component {
         error: false
     }
  
-    login() {
+    async login() {
         this.setState({ error: false });
 
         fetch('http://10.0.2.2:8000/api/login', {
@@ -28,10 +29,11 @@ export default class Login extends React.Component {
             })
         })
         .then((response) => response.json())
-        .then((data) => {
+        .then(async (data) => {
             if (data.error) {
                 this.setState({ error: true});
             } else {
+                await AsyncStorage.setItem('user', JSON.stringify(data.data));
                 this.props.navigation.navigate('Home');
             }
         })

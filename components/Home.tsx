@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Text, View, Button, ScrollView, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default class Home extends Component {
   state = {
@@ -7,27 +8,34 @@ export default class Home extends Component {
     error: false
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    let userString = await AsyncStorage.getItem('user');
+    if (!userString) {
+      this.setState({ error: true });
+      return;
+    }
+
+    let user = JSON.parse(userString);
     fetch('http://10.0.2.2:8000/api/posts', {
       method: 'GET',
       headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
+        Authorization: `Bearer ${user.token}`, 
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
       }
-  })
-  .then((response) => response.json())
-  .then((data) => {
-    console.log(data);
+    })
+    .then((response) => response.json())
+    .then((data) => {
       if (data.error) {
           this.setState({ error: true});
       } else {
           this.setState({ feeds: data.data});
       }
-  })
-  .catch((error) => {
-      console.log('error')
-      console.error(error);
-  });
+    })
+    .catch((error) => {
+        console.log('error')
+        console.error(error);
+    });
   }
 
   render() {
